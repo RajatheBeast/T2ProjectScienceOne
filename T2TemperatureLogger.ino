@@ -10,12 +10,9 @@ Date Last Modified: 11/1/2020
 
 #include <Wire.h>
 #include "Adafruit_MCP9808.h"
-#include <SD.h> // SD card library
-#include <SPI.h> // SPI bus library
 
 // Create the MCP9808 temperature sensor objects
 Adafruit_MCP9808 tempsensors[3] = {Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808()};
-File filePath; // Declaring file path variable
 
 void setup() {
   Serial.begin(9600);
@@ -55,9 +52,8 @@ void setup() {
     tempsensors[i].wake(); // Wake up all sensors
   }
 
-  SD.begin(); // Initialize sd card, default uses dp10 for hardware ss, dp11-13 for spi bus
-  filePath = SD.open("data.txt", FILE_WRITE); // Open data file in write mode
   pinMode(5, INPUT);
+  delay(10000);
 }
 
 void loop() {
@@ -65,16 +61,15 @@ void loop() {
   if (digitalRead(5) == LOW) {
     terminationSequence();
   }
-  filePath.println(millis()); // Save to sd .txt file
+  Serial.println(millis());
   for (byte i{0}; i < 3; i++) { // Read and write out temperatures
     float temp = tempsensors[i].readTempC();
-    filePath.println(temp);
+    Serial.println(temp);
   }
   delay(30); // 30ms delay for the next reading
   
 }
 
-terminationSequence() {
-  filePath.close() // Close file
+void terminationSequence() {
   while (digitalRead(5) == LOW); // Loop until you need to start recording again
 }
