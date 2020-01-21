@@ -12,7 +12,7 @@ Date Last Modified: 11/1/2020
 #include "Adafruit_MCP9808.h"
 
 // Create the MCP9808 temperature sensor objects
-Adafruit_MCP9808 tempsensors[3] = {Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808()};
+Adafruit_MCP9808 tempsensors[8] = {Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808()};
 
 void setup() {
   Serial.begin(9600);
@@ -34,7 +34,7 @@ void setup() {
 
   // Initialize all sensors
 
-  for (byte i{0}; i < 3; i++) {
+  for (byte i{0}; i < 8; i++) {
     if(!tempsensors[i].begin(0x18+i)) { // Initializes sensors
       Serial.print("Sensor "); Serial.print(i + 1); Serial.println(" failed to initialize");
       while (true);
@@ -48,28 +48,22 @@ void setup() {
   //  2    0.125°C     130 ms
   //  3    0.0625°C    250 ms
 
-  for (byte i{0}; i < 3; i++) {
+  for (byte i{0}; i < 8; i++) {
     tempsensors[i].wake(); // Wake up all sensors
   }
 
-  pinMode(5, INPUT);
   delay(10000);
+  
 }
 
 void loop() {
 
-  if (digitalRead(5) == LOW) {
-    terminationSequence();
-  }
+
   Serial.println(millis());
-  for (byte i{0}; i < 3; i++) { // Read and write out temperatures
+  for (byte i{0}; i < 8; i++) { // Read and write out temperatures
     float temp = tempsensors[i].readTempC();
     Serial.println(temp);
   }
   delay(30); // 30ms delay for the next reading
   
-}
-
-void terminationSequence() {
-  while (digitalRead(5) == LOW); // Loop until you need to start recording again
 }
