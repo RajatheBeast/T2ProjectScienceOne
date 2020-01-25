@@ -4,7 +4,7 @@
 This code was adapted from the example code for the Adafruit mcp9808
 temperature sensor library.
 Modified by: Justin Lawrence
-Date Last Modified: 11/1/2020
+Date Last Modified: 24/1/2020
 */
 /**************************************************************************/
 
@@ -13,6 +13,7 @@ Date Last Modified: 11/1/2020
 
 // Create the MCP9808 temperature sensor objects
 Adafruit_MCP9808 tempsensors[8] = {Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808(),Adafruit_MCP9808()};
+unsigned long timeBase; // Base time for comparison
 
 void setup() {
   Serial.begin(9600);
@@ -34,7 +35,7 @@ void setup() {
 
   // Initialize all sensors
 
-  for (byte i{0}; i < 8; i++) {
+  for (int i{0}; i < 8; i++) {
     if(!tempsensors[i].begin(0x18+i)) { // Initializes sensors
       Serial.print("Sensor "); Serial.print(i + 1); Serial.println(" failed to initialize");
       while (true);
@@ -51,19 +52,23 @@ void setup() {
   for (byte i{0}; i < 8; i++) {
     tempsensors[i].wake(); // Wake up all sensors
   }
-
   delay(10000);
+  timeBase = millis();
   
 }
 
 void loop() {
 
-
-  Serial.println(millis());
-  for (byte i{0}; i < 8; i++) { // Read and write out temperatures
+  Serial.print("<"); // Open reading
+  Serial.print("{"); // Open datapoint
+  Serial.print(millis()); // Write out time
+  Serial.print("}"); // Close datapoint
+  for (byte i{0}; i < 8 ; i++) { // Read and write out temperatures
     float temp = tempsensors[i].readTempC();
-    Serial.println(temp);
+    Serial.print("{");
+    Serial.print(temp);
+    Serial.print("}");
   }
+  Serial.print(">"); // Close reading
   delay(30); // 30ms delay for the next reading
-  
 }
