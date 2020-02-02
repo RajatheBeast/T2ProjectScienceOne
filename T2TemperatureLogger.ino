@@ -70,5 +70,5 @@ void loop() {
     Serial.print("}");
   }
   Serial.print(">"); // Close reading
-  delay(30); // 30ms delay for the next reading
+  delay(130); // 130ms delay for the next reading
 }

@@ -8,9 +8,9 @@ Created on Wed Jan 15 22:36:33 2020
 import serial
 import csv
 
-CSV_FILE_NAME = "rawdata.csv" # Name of csv document
-DATE = "24/01/2020" # Date of data collection in dd/mm/yyyy format
-MATERIAL = "Aluminium" # String containing the name of the material used
+CSV_FILE_NAME = "rawdata5.csv" # Name of csv document
+DATE = "01/02/2020" # Date of data collection in dd/mm/yyyy format
+MATERIAL = "Brass" # String containing the name of the material used
 
 temperatures = list() ## List of readings
 currentReading = list() ## Current reading
@@ -24,7 +24,7 @@ def terminationSequence():
     csvFile = open(CSV_FILE_NAME, 'w', newline='') # Open csv file for writing
     csvWriter = csv.writer(csvFile) # Open csv writer for constants
     csvWriter.writerow(["Date", DATE, "Material", MATERIAL]) # Write constant to file
-    csvWriter = csv.DictWriter(csvFile, fieldnames=names) # Open csv writer proper
+    csvWriter = csv.DictWriter(csvFile, fieldnames=names) # Open csv writer roper
     csvWriter.writeheader() # Self-explanatory
     for i in range (len(temperatures)): # Iterate through readings
         currentReading = temperatures[i] # Get reading
@@ -60,5 +60,6 @@ while True:
                 currentReading.append(temp)
     except (serial.SerialException): ## Exception thrown if port is closed
         terminationSequence() ## If the port is closed, call termination sequence
+        ardPort.close()
         break # End program
         
