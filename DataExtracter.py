@@ -10,12 +10,15 @@ import csv
 import sys
 
 CSV_FILE_NAME = "rawdata.csv" # Name of csv document
-DATE = "01/01/2001" # Date of data collection in dd/mm/yyyy format
-MATERIAL = "Brass" # String containing the name of the material used
+DATE = "24/01/2020" # Date of data collection in dd/mm/yyyy format
+MATERIAL = "Aluminium" # String containing the name of the material used
 
 temperatures = list() ## List of readings
 currentReading = [0,0,0,0,0,0,0,0,0] ## Current reading
 names = ["Time","TempOne","TempTwo","TempThree","TempFour","TempFive","TempSix","TempSeven","Atmospheric"] # Array of names for columns
+firstFifty = True # Check for 50C alert?
+firstSeventyFive = True # Check for 75C alert?
+firstHundred = True # Check of 100C alert?
 
 ardPort = serial.Serial("COM3", 9600) ## Initializes serial port named com3, baud rate 9600
 
@@ -36,16 +39,39 @@ def terminationSequence():
     sys.exit(0) # End program
 
 needed = 45 # Number of bytes for a valid reading
+skip = False # Setup
 
 while True:
     try:
         while (ardPort.in_waiting < needed): # Loop while not enough data is availible
             pass
         for i in range(9):
-            currentReading[i] = float(ardPort.readline().decode().rstrip()) # Get and process data from serial
+            x = ardPort.readline()#.decode().rstrip()
+            print(x)
+            currentReading[i] = float(x) # Get and process data from serial
+            if (i == 0): # If flushcode
+                if (currentReading[i] == 0):
+                    print("Clearing buffer")
+                    ardPort.reset_input_buffer() # Flush buffer, reset size
+                    print(ardPort.in_waiting)
+                    skip = True
+                    needed = 0
+                    break
+            else: # Not the time
+                if (firstFifty and currentReading[i] >= 50): # Alert for 50C
+                    print(50)
+                    firstFifty = False
+                elif (firstSeventyFive and currentReading[i] >= 75): # Alert for 75C
+                    print(75)
+                    firstSeventyFive = False
+                elif (firstHundred and currentReading[i] >= 100): #Alert for 100C
+                    print(100)
+                    firstHundred = False
         needed += 45 # Previously read bytes are no longer counted
-        temperatures.append(currentReading.copy()) # Add to list of temperature readings
-        
+        if (not skip):
+            temperatures.append(currentReading.copy()) # Add to list of temperature reading
+            continue
+        skip = False
     except (serial.SerialException): ## Exception thrown if port is closed
         terminationSequence() ## If the port is closed, call termination sequence
         

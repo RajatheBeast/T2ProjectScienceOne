@@ -9,7 +9,7 @@ import csv
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 
-CSV_FILE_NAME = "rawdata4.csv" # Name of csv document
+CSV_FILE_NAME = "rawdata10s.csv" # Name of csv document
 names = ["Time","TempOne","TempTwo","TempThree","TempFour","TempFive","TempSix","TempSeven","Atmospheric"] # Array of names for columns
 
 position = [] ## x, y, and z axis

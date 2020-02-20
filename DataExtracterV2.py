@@ -8,9 +8,9 @@ Created on Wed Jan 15 22:36:33 2020
 import serial
 import csv
 
-CSV_FILE_NAME = "rawdata5.csv" # Name of csv document
-DATE = "01/02/2020" # Date of data collection in dd/mm/yyyy format
-MATERIAL = "Brass" # String containing the name of the material used
+CSV_FILE_NAME = "rawdata15s.csv" # Name of csv document
+DATE = "20/02/2020" # Date of data collection in dd/mm/yyyy format
+MATERIAL = "Aluminum" # String containing the name of the material used
 
 temperatures = list() ## List of readings
 currentReading = list() ## Current reading
