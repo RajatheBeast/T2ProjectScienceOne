@@ -11,6 +11,7 @@ Created on Sat Feb 22 16:19:51 2020
 import csv
 import xlsxwriter
 from math import log as ln
+import FitCalculator as chi
 
 # Data in both files should be normalized to start at T = 0s, and run at the same intervals for the same amount of time
 CSV_DATA_FILE_NAME = "processed_data.csv" # Name of csv document with processed data
@@ -81,6 +82,59 @@ def setupSheets(): # Sets up the xlsx file
         worksheets[i].write_row(0,0,header) # Write the header to the sheet
     return xlsx_file, worksheets
 
+def storeChiSquaredValues(processed_data, xlsx_file, worksheets): # Adds chi^2 values to xlsx sheet
+    chi_values = chi.calculateChiScore(processed_data)
+    for i in range(0,7): # Iterate through worksheets/nodes
+        worksheet = worksheets[i] # Get current worksheet
+        worksheet.write('G1', 'Chi-squared') # Write chi_squared value
+        worksheet.write('G2', chi_values[i])
+    return
+
+def makeNormalCharts(xlsx_file, worksheets, num): # Generates plots of the normal (non-ln) data
+    ## Num is the number of datapoints for each temperature
+    for i in range(0,7): # Iterate through worksheets/nodes
+        worksheet = worksheets[i] # Get current worksheet
+        chart = xlsx_file.add_chart({'type':'scatter','subtype':'smooth_with_markers'}) # Add scatter chart to the excel document
+        chart.set_title({'name':'Temperature(K) vs Time(s)'}) # Add title and axis titles to chart
+        chart.set_x_axis({'name':'Time(s)'})
+        chart.set_y_axis({'name':'Temperature(K)'})
+        chart.add_series({'name':'Data', # Name of the series
+                          'values':['Temperature '+str(i+1),1,1,1+num,1], # y-values, sheet for temperature 1 from [row, column] to [row,column]
+                          'categories':['Temperature '+str(i+1),1,0,1+num,0], # x-values, same format
+                          'marker':{'type':'circle','size':2}, # Set markers to small circles
+                          'line':{'none':True} # Remove line
+        })
+        chart.add_series({'name':'Model', # Name of the series
+                          'values':['Temperature '+str(i+1),1,2,1+num,2], # y-values, sheet for temperature 1 from [row, column] to [row,column]
+                          'categories':['Temperature '+str(i+1),1,0,1+num,0], # x-values, same format
+                          'marker':{'type':'none'}, # Set remove markers
+                          'line':{'color':'red'} # Set colour of the line and turn on line
+        })
+        worksheet.insert_chart('H5', chart) # Insert chart into worksheet
+    return
+
+def makeLinearCharts(xlsx_file, worksheets, num): # Generate plots of the ln data
+    for i in range(0,7): # Iterate through worksheets/nodes
+        worksheet = worksheets[i] # Get current worksheet
+        chart = xlsx_file.add_chart({'type':'scatter','subtype':'straight_with_markers'}) # Add scatter chart to the excel document
+        chart.set_title({'name':'ln(Temperature) vs Time(s)'}) # Add title and axis titles to chart
+        chart.set_x_axis({'name':'Time(s)'})
+        chart.set_y_axis({'name':'ln(Temperature)'})
+        chart.add_series({'name':'Data', # Name of the series
+                          'values':['Temperature '+str(i+1),1,3,1+num,3], # y-values, sheet for temperature 1 from [row, column] to [row,column]
+                          'categories':['Temperature '+str(i+1),1,0,1+num,0], # x-values, same format
+                          'marker':{'type':'circle','size':2}, # Set markers to small circles
+                          'line':{'none':True} # Remove line
+        })
+        chart.add_series({'name':'Model', # Name of the series
+                          'values':['Temperature '+str(i+1),1,4,1+num,4], # y-values, sheet for temperature 1 from [row, column] to [row,column]
+                          'categories':['Temperature '+str(i+1),1,0,1+num,0], # x-values, same format
+                          'marker':{'type':'none'}, # Set remove markers
+                          'line':{'color':'red'} # Set colour of the line and turn on line
+        })
+        worksheet.insert_chart('H20', chart) # Insert chart into worksheet
+    return
+
 def fillSheets(): # Fills the xlsx file with the data
     measured_data, model_data = extractData() # Get all necessary data and file handles
     times = getTime(measured_data)
@@ -92,6 +146,9 @@ def fillSheets(): # Fills the xlsx file with the data
         worksheet.write_column(1,0,times) # Write times to column 0, starting at row 1
         for k in range(0,4): # Iterate through data types in dataset
             worksheet.write_column(1,k+1,dataset[k]) # Write data
+    storeChiSquaredValues(processed_data, xlsx_file, worksheets)
+    makeNormalCharts(xlsx_file, worksheets, len(processed_data[0][0]))
+    makeLinearCharts(xlsx_file, worksheets, len(processed_data[0][0]))
     xlsx_file.close() # For now, to save
     return
 
