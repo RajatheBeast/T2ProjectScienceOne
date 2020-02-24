@@ -12,13 +12,14 @@ import csv
 import xlsxwriter
 from math import log as ln
 import FitCalculator as chi
+import CalculateRScore as rs
 
 # Data in both files should be normalized to start at T = 0s, and run at the same intervals for the same amount of time
-CSV_DATA_FILE_NAME = "processed_data.csv" # Name of csv document with processed data
-CSV_MODEL_FILE_NAME = "model_data.csv" # Name of the csv document with model data
+CSV_DATA_FILE_NAME = "processedData20.csv" # Name of csv document with processed data
+CSV_MODEL_FILE_NAME = "processedData19.csv" # Name of the csv document with model data
 XLSX_SHEETS_FILE_NAME = "linear_fit.xlsx" # Name of the xlsx document with the linear fit data
 names = ["Time","TempOne","TempTwo","TempThree","TempFour","TempFive","TempSix","TempSeven"] # Array of names for columns
-header = ["Time", "DataTemperature", "ModelTemperature", "ln(Data)", "ln(Model)"]
+header = ["Time", "DataTemperature", "ModelTemperature", "ln(Data)", "ln(Model)", "Residual"]
 
 def extractData(): # Pulls data from the csv files and stores them in lists
     data_file = open(CSV_DATA_FILE_NAME, 'r', newline='') # Open data file for reading
@@ -52,12 +53,12 @@ def getTime(measured_data): # Stores the time data in extractData as its own lis
     return times # Return the list of times
 
 def processData(measured_data, model_data): # Processes the extracted data to be ready for writing for a given temperature
-    ## This returns a 3d list. d1 = temperature number, d2 = data/model/ln(data)/ln(model), d3 = datapoint
+    ## This returns a 3d list. d1 = temperature number, d2 = data/model/ln(data)/ln(model)/residuals, d3 = datapoint
     ## First, build the list
     processed_data = list() # The 3d list
     for i in range (0,7): # Append the seven tempreature lists
         processed_data.append(list())
-        for k in range(0,4): # Append the four data columns to the temperature list
+        for k in range(0,5): # Append the five data columns to the temperature list
             processed_data[i].append(list())
             
     ## Then, input the data
@@ -70,6 +71,7 @@ def processData(measured_data, model_data): # Processes the extracted data to be
             processed_data[i][1].append(model)
             processed_data[i][2].append(ln(measured))
             processed_data[i][3].append(ln(model))
+            processed_data[i][4].append(ln(measured) - ln(model))
             
     return processed_data
 
@@ -135,6 +137,29 @@ def makeLinearCharts(xlsx_file, worksheets, num): # Generate plots of the ln dat
         worksheet.insert_chart('H20', chart) # Insert chart into worksheet
     return
 
+def makeResidualCharts(xlsx_file, worksheets, num): # Generates plots of residual data
+    for i in range(0,7): # Iterate through worksheets/nodes
+        worksheet = worksheets[i] # Get current worksheet
+        chart = xlsx_file.add_chart({'type':'scatter'}) # Add scatter chart to the excel document
+        chart.set_title({'name':'ln(Temperature) vs Time(s)'}) # Add title and axis titles to chart
+        chart.set_x_axis({'name':'Time(s)'})
+        chart.set_y_axis({'name':'Residual'})
+        chart.add_series({'name':'Residuals', # Name of the series
+                          'values':['Temperature '+str(i+1),1,5,1+num,5], # y-values, sheet for temperature 1 from [row, column] to [row,column]
+                          'categories':['Temperature '+str(i+1),1,0,1+num,0], # x-values, same format
+                          'marker':{'type':'circle','size':2} # Set markers to small circles
+        })
+        worksheet.insert_chart('H35', chart) # Insert chart into worksheet
+    return
+def storeRSquaredScores(xlsx_file, worksheets, processed_data):
+    r_values = rs.calculateRScores(processed_data)
+    for i in range(0,7): # Adds R^2 values to xlsx sheet
+        worksheet = worksheets[i] # Get current worksheet
+        r_score = r_values[i] # Get current R^2 value
+        worksheet.write('H1', 'R^2') # Write r_score
+        worksheet.write('H2', r_score)
+    return
+
 def fillSheets(): # Fills the xlsx file with the data
     measured_data, model_data = extractData() # Get all necessary data and file handles
     times = getTime(measured_data)
@@ -144,11 +169,13 @@ def fillSheets(): # Fills the xlsx file with the data
         worksheet = worksheets[i] # Get current worksheet
         dataset = processed_data[i] # Get current node's data
         worksheet.write_column(1,0,times) # Write times to column 0, starting at row 1
-        for k in range(0,4): # Iterate through data types in dataset
+        for k in range(0,5): # Iterate through data types in dataset
             worksheet.write_column(1,k+1,dataset[k]) # Write data
     storeChiSquaredValues(processed_data, xlsx_file, worksheets)
+    storeRSquaredScores(xlsx_file, worksheets, processed_data)
     makeNormalCharts(xlsx_file, worksheets, len(processed_data[0][0]))
     makeLinearCharts(xlsx_file, worksheets, len(processed_data[0][0]))
+    makeResidualCharts(xlsx_file, worksheets, len(processed_data[0][0]))
     xlsx_file.close() # For now, to save
     return
 

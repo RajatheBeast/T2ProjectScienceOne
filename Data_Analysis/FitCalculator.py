@@ -6,7 +6,6 @@ Created on Sun Feb  2 21:49:30 2020
 """
 
 ## CANNOT FUNCTION INDEPENDENTLY, TO BE CALLED FROM DATAFITEXCEL
-names = ["Time","TempOne","TempTwo","TempThree","TempFour","TempFive","TempSix","TempSeven","Atmospheric"] # Array of names for columns
 u_Temp = 0.125 # Temperature uncertainty
 P = 2 # Number of perameters
 
