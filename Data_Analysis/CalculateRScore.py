@@ -27,9 +27,9 @@ def calcSumOfResiduals(residual_data): # Calculates the sum of the residuals squ
 def calculateRScores(measured_data): # Calculates R score, is interacted with
     r_scores = list() # List of r scores
     for i in range(0,7): # Iterate through nodes    
-        mean = calculateMean(measured_data[i][2]) # Get mean
-        sum_squares = calcSumOfSquares(measured_data[i][2], mean) # Get sum of squares
-        sum_residuals = calcSumOfResiduals(measured_data[i][4]) # Get sum of residuals
+        mean = calculateMean(measured_data[i][4]) # Get mean
+        sum_squares = calcSumOfSquares(measured_data[i][4], mean) # Get sum of squares
+        sum_residuals = calcSumOfResiduals(measured_data[i][6]) # Get sum of residuals
         R = 1 - (sum_residuals/sum_squares) # Calculate r_score for node
         r_scores.append(R) # Add to list
     return r_scores

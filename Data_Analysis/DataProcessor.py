@@ -7,9 +7,9 @@ Created on Thu Feb 20 13:13:52 2020
 
 import csv
 
-CSV_READ_FILE_NAME = "rawdata.csv" # Name of raw csv document
-CSV_WRITE_FILE_NAME = "processedData.csv" # Name of processed csv document
-DATE = "01/02/2020" # Date of data collection in dd/mm/yyyy format
+CSV_READ_FILE_NAME = "rawdata19s.csv" # Name of raw csv document
+CSV_WRITE_FILE_NAME = "processedData19.csv" # Name of processed csv document
+DATE = "21/02/2020" # Date of data collection in dd/mm/yyyy format
 MATERIAL = "Brass" # String containing the name of the material used
 
 names = ["Time","TempOne","TempTwo","TempThree","TempFour","TempFive","TempSix","TempSeven","Atmospheric"] # Array of names for columns
