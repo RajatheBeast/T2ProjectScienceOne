@@ -8,22 +8,35 @@ Created on Mon Jan 13 19:20:05 2020
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
+import CalcOneTermConstants as Ct
 
-
-
+data_file_name = 'processedData15.csv'
+model_file_name = 'modelData15.csv'
 L = 0.3048 #lenth of the rod (in meters)
 n = 56 #number of nodes
-T0 = 331.96 #initial temperature at one end point
-T1s = 280.15 #left boundary condition
-T2s = 280.15 #right boundary condition
 dx = L/n #Thickness of the wall divided by the number of nodes
-alpha = .00004891 #this is the thermal difusivity defined as thermal conductivity / (density (rho) * Cp)
-alpha_air = .000020
-t_final = 332.826 #final time keep as in integer for proper data collection
+#---------------------------------------------------------------------------------
+T0 = 312.71 #initial temperature at one end point
+T1s = 281.9 #left boundary condition
+T2s = T1s #right boundary condition
+Temp_dataFinal = 293.46 #this is the temp value used for the calculation of alpha
+dataTimeChange = 200.54 #this is the time value used for the calculation of alpha
+#The following values are what the data collected for the nodes
+T1 = 305.4
+T2 = 299.9
+T3 = 294.34
+T4 = 291.21
+T5 = 288.78
+T6 = 287.4
+
+alpha = Ct.findAlpha(T0, T1s, Temp_dataFinal, dataTimeChange, L) #this is the thermal difusivity defined as thermal conductivity / (density (rho) * Cp)
+#---------------------------------------------------------------------------------
+t_final = 100000 #final time keep as in integer for proper data collection
+print(alpha)
+alpha_air = .0000005
+
 dt = .01 #the time intervals keep as an integer for proper data collection
 showEvolve = False
-
-
 x = np.linspace(dx/2, L-dx/2, n) # We will be plotting the temperature of space between each node
 T = np.ones(n)*T0 #This is the starting temperature
 dTdt = np.empty(n) #defining the temperature derivative
@@ -34,16 +47,11 @@ t = np.arange(0, t_final, dt) #time vector
 we can imput the 7 sensors readings as soon as the first one reaches
 the desired temp (in this case 200 degrees C) and imput them here and 
 see how it compares to the real deal!'''
-T0 = T0
-T1 = 314.09
-T2 = 302.90
-T3 = 294.84
-T4 = 289.4
-T5 = 285.96
-T6 = 284.65
 
+
+#Sets up all the nodes here to have a good guess of the temperature
 for i in range(0,7):
-    T[i],T[i+7],T[i+14],T[i+21],T[i+28],T[i+35],T[i+42],T[i+49] = T0,T1,T2,T3,T4,T5,T6,T6
+    T[i],T[i+7],T[i+14],T[i+21],T[i+28],T[i+35],T[i+42],T[i+49] = T0+(i*(T1-T0)/7),T1+(i*(T2-T1)/7),T2+(i*(T3-T2)/7),T3+(i*(T4-T3)/7),T4+(i*(T5-T4)/7),T5+(i*(T6-T5)/7),T6,T6
 
 
 #Lists that are used in csv files
@@ -62,13 +70,13 @@ plotTime = []
 data_times = list()
 skip = 0
 first_time = 0
-with open('data.csv', 'r', newline = '') as data_file:
+with open(data_file_name, 'r', newline = '') as data_file:
     csvReader = csv.DictReader(data_file, fieldnames=["Time","TempOne","TempTwo","TempThree","TempFour","TempFive","TempSix","TempSeven","Atmospheric"])
     for row in csvReader:
         if skip == 2:
-            first_time = float(row["Time"])/1000
+            first_time = float(row["Time"])
         if not (skip < 2):
-            data_times.append((float(row["Time"])/1000) - first_time)
+            data_times.append((float(row["Time"]))-first_time)
         skip += 1
 
 k = 0
@@ -85,13 +93,13 @@ for j in range(0, len(t)): #Goes through each time and calculates the temperatur
     time.append(j*dt)
 
     if round(time[j], 2) == round(data_times[k], 2):
-        temp0.append(T[6])
-        temp1.append(T[13])
-        temp2.append(T[20])
-        temp3.append(T[27])
-        temp4.append(T[34])
-        temp5.append(T[41])
-        temp6.append(T[47])
+        temp0.append(T[0])
+        temp1.append(T[7])
+        temp2.append(T[14])
+        temp3.append(T[21])
+        temp4.append(T[28])
+        temp5.append(T[35])
+        temp6.append(T[42])
         plotTime.append(j*dt)
         k += 1
     
@@ -109,10 +117,10 @@ for j in range(0, len(t)): #Goes through each time and calculates the temperatur
         plt.pause(0.1) 
 
 
-with open('model_data.csv', 'w') as csv_file:
+with open(model_file_name, 'w') as csv_file:
     csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(['time (s)', 'temp0', 'temp1', 'temp2', 'temp3', 'temp4', 'temp5','temp6'])
-
+    csv_writer.writerow(['time (s)', 'temp0', 'temp1', 'temp2', 'temp3', 'temp4', 'temp5','temp6', 'alpha value:', alpha])
+    csv_writer.writerow([''])
     for i in range(0, len(temp0)):
         csv_writer.writerow([plotTime[i],temp0[i],temp1[i],temp2[i],temp3[i],temp4[i],temp5[i],temp6[i]])
 
